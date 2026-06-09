@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Liste des réclamations{% endblock %}
+
+{% block content %}
+<style>
+    .filter-bar {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #e2e8f0;
+    }
+    .export-bar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .btn-export {
+        background: white;
+        border: 1px solid #e2e8f0;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        color: #475569;
+    }
+    .btn-export:hover { background: #f8fafc; }
+    .btn-excel:hover { border-color: #10b981; color: #10b981; }
+    .btn-pdf:hover { border-color: #ef4444; color: #ef4444; }
+    .btn-nouvelle {
+        background: #10b981;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .btn-nouvelle:hover { background: #059669; }
+    .status-select {
+        padding: 4px 8px;
+        border-radius: 20px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .status-attente { background: #fef3c7; color: #92400e; }
+    .status-cours { background: #dbeafe; color: #1e40af; }
+    .status-cloture { background: #d1fae5; color: #065f46; }
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+    .action-btn:hover { background: #e2e8f0; }
+    .date-cloture {
+        font-size: 0.75rem;
+        color: #065f46;
+        background: #d1fae5;
+        padding: 2px 8px;
+        border-radius: 12px;
+        display: inline-block;
+    }
+</style>
+
+<!-- Barre d'export et nouvelle réclamation -->
+<div class="export-bar">
+    <a href="{% url 'reclamations:export_excel' %}" class="btn-export btn-excel">  Excel</a>
+    <a href="{% url 'reclamations:export_pdf' %}" class="btn-export btn-pdf">  PDF</a>
+    <a href="{% url 'reclamations:nouvelle_reclamation' %}" class="btn-nouvelle">➕ Nouvelle réclamation</a>
+</div>
+
+<!-- Filtres -->
+<div class="filter-bar">
+    <form method="get" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+        <div>
+            <label style="font-weight: 600; color: #003f7f;">Statut</label>
+            <select name="statut" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <option value="all">Tous les statuts</option>
+                <option value="en_attente" {% if statut_filter == 'en_attente' %}selected{% endif %}>⏳ En attente</option>
+                <option value="en_cours" {% if statut_filter == 'en_cours' %}selected{% endif %}>🔧 En cours</option>
+                <option value="resolue" {% if statut_filter == 'resolue' %}selected{% endif %}>✅ Clôturée</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-weight: 600; color: #003f7f;">agence</label>
+            <select name="agence" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <option value="all">Toutes les agences</option>
+                {% for code, nom in agence_choices %}
+                <option value="{{ code }}" {% if agence_filter == code %}selected{% endif %}>{{ nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary" style="background: #0060bf; padding: 8px 20px; border: none; border-radius: 8px; color: white;">Filtrer</button>
+        </div>
+    </form>
+</div>
+
+<!-- Tableau -->
+<div style="background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #003f7f; color: white;">
+                <th style="padding: 12px;">N°</th>
+                <th style="padding: 12px;">Nom</th>
+                <th style="padding: 12px;">Prénom</th>
+                <th style="padding: 12px;">CIN</th>
+                <th style="padding: 12px;">Téléphone</th>
+                <th style="padding: 12px;">Agence</th>
+                <th style="padding: 12px;">Type</th>
+                <th style="padding: 12px;">Urgence</th>
+                <th style="padding: 12px;">Date</th>
+                <th style="padding: 12px;">Date clôture</th>
+                <th style="padding: 12px;">Statut</th>
+                <th style="padding: 12px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for rec in reclamations %}
+    <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 12px; text-align: center;">{{ rec.id }}</td>
+        <td style="padding: 12px;">{{ rec.nom }}</td>
+        <td style="padding: 12px;">{{ rec.prenom|default:"-" }}</td>
+        <td style="padding: 12px; text-align: center;">{{ rec.cin|default:"-" }}</td>
+        <td style="padding: 12px; text-align: center;">{{ rec.telephone|default:"-" }}</td>
+        <td style="padding: 12px; text-align: center;">{{ rec.agence|default:"-" }}</td>
+        <td style="padding: 12px;">{{ rec.get_type_probleme_display|truncatechars:15 }}</td>
+        <td style="padding: 12px; text-align: center;">
+            <span class="{% if rec.urgence == 'urgent' %}urgence-urgent{% elif rec.urgence == 'moyen' %}urgence-moyen{% else %}urgence-faible{% endif %}">
+                {{ rec.get_urgence_display }}
+            </span>
+        </td>
+        <td style="padding: 12px; text-align: center;">{{ rec.date_creation|date:"d/m/Y" }}</td>
+        <td style="padding: 12px; text-align: center;">
+            {% if rec.date_cloture %}
+                <span class="date-cloture">{{ rec.date_cloture|date:"d/m/Y" }}</span>
+            {% else %}
+                <span style="color: #94a3b8;">-</span>
+            {% endif %}
+        </td>
+        <td style="padding: 12px; text-align: center;">
+            <select onchange="changerStatut('{{ rec.id }}', this.value)" 
+                    class="status-select 
+                    {% if rec.statut == 'en_attente' %}status-attente
+                    {% elif rec.statut == 'en_cours' %}status-cours
+                    {% else %}status-cloture{% endif %}">
+                <option value="en_attente" {% if rec.statut == 'en_attente' %}selected{% endif %}>⏳ En attente</option>
+                <option value="en_cours" {% if rec.statut == 'en_cours' %}selected{% endif %}>🔧 En cours</option>
+                <option value="resolue" {% if rec.statut == 'resolue' %}selected{% endif %}>✅ Clôturée</option>
+            </select>
+        </td>
+        <td style="padding: 12px; text-align: center;">
+            <button onclick="ouvrirModification('{{ rec.id }}')" class="action-btn" title="Modifier">✏️</button>
+            <button onclick="supprimer('{{ rec.id }}')" class="action-btn" title="Supprimer">🗑️</button>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="12" style="text-align: center; padding: 40px;">📭 Aucune réclamation</td>
+    </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function changerStatut(id, nouveauStatut) {
+    fetch("{% url 'reclamations:changer_statut' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ 
+            id: id, 
+            statut: nouveauStatut
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            location.reload();
+        }
+    });
+}
+
+function supprimer(id) {
+    if(confirm('Supprimer cette réclamation ?')) {
+        window.location.href = "{% url 'reclamations:supprimer_reclamation' 'ID' %}".replace('ID', id);
+    }
+}
+
+function ouvrirModification(id) {
+    window.location.href = "/modifier/" + id + "/";
+}
+</script>
+
+<style>
+.urgence-urgent { background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; display: inline-block; }
+.urgence-moyen { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; display: inline-block; }
+.urgence-faible { background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; display: inline-block; }
+</style>
+{% endblock %}

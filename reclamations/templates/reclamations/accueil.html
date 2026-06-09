@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Accueil - Recherche{% endblock %}
+
+{% block content %}
+<style>
+    .search-box {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid #e2e8f0;
+    }
+    .results-box {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+    }
+    .result-row:hover {
+        background: #f8fafc;
+    }
+    .badge-statut {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    .badge-en_attente { background: #fef3c7; color: #92400e; }
+    .badge-en_cours { background: #dbeafe; color: #1e40af; }
+    .badge-resolue { background: #d1fae5; color: #065f46; }
+</style>
+
+<h2 style="color: #003f7f; margin-bottom: 20px;">🔍 Rechercher une réclamation</h2>
+
+<!-- Barre de recherche -->
+<div class="search-box">
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="flex: 2; min-width: 200px;">
+            <input type="text" id="searchInput" placeholder="N° réclamation, CIN, Nom..." 
+                   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+        </div>
+        <div style="flex: 1;">
+            <select id="regionFilter" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                <option value="all">Toutes les agences</option>
+                <option value="Azilal">Azilal</option>
+                <option value="Afourar">Afourar</option>
+                <option value="Bzou">Bzou</option>
+                <option value="Demnate">Demnate</option>
+                <option value="Ait Attab">Ait Attab</option>
+                <option value="Tanante">Tanante</option>
+                <option value="Waouizght">Waouizght</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="searchClaims()" class="btn btn-primary" style="background: #0060bf; padding: 12px 28px; border: none; border-radius: 8px; color: white;">🔍 Rechercher</button>
+        </div>
+    </div>
+</div>
+
+<!-- Résultats de recherche -->
+<div class="results-box" id="resultsBox" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="color: #003f7f;">📄 Résultats de recherche</h3>
+        <span id="resultCount" style="color: #475569; font-size: 0.8rem;"></span>
+    </div>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #003f7f; color: white;">
+                    <th style="padding: 12px;">N°</th>
+                    <th style="padding: 12px;">Nom</th>
+                    <th style="padding: 12px;">Prénom</th>
+                    <th style="padding: 12px;">Numéro contrat</th>
+                    <th style="padding: 12px;">Type</th>
+                    <th style="padding: 12px;">Statut</th>
+                    <th style="padding: 12px;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function searchClaims() {
+    const query = document.getElementById('searchInput').value;
+    const region = document.getElementById('regionFilter').value;
+    const resultsBox = document.getElementById('resultsBox');
+    const resultsBody = document.getElementById('resultsBody');
+    const resultCount = document.getElementById('resultCount');
+    
+    fetch(`/rechercher/?q=${encodeURIComponent(query)}&region=${region}`)
+        .then(response => response.json())
+        .then(data => {
+            resultsBox.style.display = 'block';
+            
+            if (data.data.length === 0) {
+                resultsBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px;">📭 Aucune réclamation trouvée</td></tr>`;
+                resultCount.innerHTML = `0 résultat`;
+                return;
+            }
+            
+            resultCount.innerHTML = `${data.data.length} résultat(s)`;
+            
+            let html = '';
+            for (let i = 0; i < data.data.length; i++) {
+                const r = data.data[i];
+                
+                let statusClass = '';
+                if (r.statut_code === 'en_attente') {
+                    statusClass = 'badge-en_attente';
+                } else if (r.statut_code === 'en_cours') {
+                    statusClass = 'badge-en_cours';
+                } else {
+                    statusClass = 'badge-resolue';
+                }
+                
+                html += `
+                    <tr class="result-row" style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px; text-align: center;"><strong>${r.id}</strong></td>
+                        <td style="padding: 12px; text-align: left;">${r.nom}</td>
+                        <td style="padding: 12px; text-align: left;">${r.prenom || '-'}</td>
+                        <td style="padding: 12px; text-align: center;">${r.numero_contrat || '-'}</td>
+                        <td style="padding: 12px; text-align: center;">${r.type_probleme}</td>
+                        <td style="padding: 12px; text-align: center;"><span class="badge-statut ${statusClass}">${r.statut}</span></td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button onclick="window.location.href='/detail/${r.id}/'" style="background: #e6f0ff; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer;">👁️ Voir</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            resultsBody.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            resultsBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px;">❌ Erreur de chargement</td></tr>`;
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Détail réclamation{% endblock %}
+
+{% block content %}
+<h2 style="color: #003f7f;">📄 Détail de la réclamation {{ reclamation.id }}</h2>
+
+<div style="background: white; border-radius: 16px; padding: 25px; margin-top: 20px;">
+    <table style="width: 100%;">
+        <tr><td style="padding: 10px;"><strong>Nom</strong></td><td>{{ reclamation.nom }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>CIN</strong></td><td>{{ reclamation.cin }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>Téléphone</strong></td><td>{{ reclamation.telephone }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>Région</strong></td><td>{{ reclamation.region }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>Type</strong></td><td>{{ reclamation.get_type_probleme_display }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>Urgence</strong></td><td>{{ reclamation.get_urgence_display }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>Date</strong></td><td>{{ reclamation.date_creation|date:"d/m/Y" }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>Statut</strong></td><td>{{ reclamation.get_statut_display }}</td></tr>
+        <tr><td style="padding: 10px;"><strong>Description</strong></td><td>{{ reclamation.description|linebreaks }}</td></tr>
+    </table>
+    
+    <div style="margin-top: 20px;">
+        <a href="{% url 'reclamations:liste_reclamations' %}" class="btn btn-primary">← Retour</a>
+    </div>
+</div>
+{% endblock %}

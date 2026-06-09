@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Azilal - {% block title %}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background: #f8fafc; }
+        .header { background: linear-gradient(135deg, #003f7f, #0060bf, #00b4d8); padding: 15px 30px; color: white; }
+        .header h1 { font-size: 1.3rem; }
+        .header p { font-size: 0.8rem; opacity: 0.9; }
+        .nav { background: white; border-bottom: 2px solid #e6f0ff; display: flex; gap: 5px; padding: 0 30px; overflow-x: auto; }
+        .nav a { padding: 15px 25px; text-decoration: none; color: #475569; font-weight: 700; border-bottom: 3px solid transparent; }
+        .nav a:hover { color: #0060bf; }
+        .nav a.active { color: #003f7f; border-bottom-color: #003f7f; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; min-height: calc(100vh - 180px); }
+        .nav-link.active {
+    background: #e6f0ff;
+    color: #003f7f;
+    border-radius: 8px 8px 0 0;}
+        .messages { max-width: 1400px; margin: 20px auto 0; padding: 0 20px; }
+        .alert { padding: 12px 20px; border-radius: 10px; margin-bottom: 10px; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .alert-error, .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        footer { background: #003f7f; color: rgba(255,255,255,0.7); text-align: center; padding: 15px; font-size: 0.75rem; }
+        .btn { padding: 8px 20px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .btn-primary { background: #0060bf; color: white; }
+        .btn-primary:hover { background: #003f7f; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .logout-btn { background: rgba(255,255,255,0.2); padding: 6px 15px; border-radius: 20px; text-decoration: none; color: white; font-size: 0.8rem; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1>🏢 SRM Azilal - Réclamations Clients</h1>
+                <p>Bienvenue sur la plateforme de gestion des réclamations clients de la SRM Azilal</p>
+            </div>
+            {% if user.is_authenticated %}
+            <div class="user-info">
+                <span>👤 {{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="logout-btn"> Déconnexion</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if user.is_authenticated %}
+    <div class="nav">
+        <a href="{% url 'reclamations:accueil' %}">🔍 Accueil</a>
+        <a href="{% url 'reclamations:liste_reclamations' %}">📋 Liste des réclamations</a>
+        <a href="{% url 'reclamations:nouvelle_reclamation' %}">➕ Nouvelle réclamation</a>
+        <a href="{% url 'reclamations:dashboard' %}">📊 Recap </a>
+    </div>
+    {% endif %}
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <footer>
+        <strong>SRM Azilal</strong> · Province d'Azilal · Urgences 24h/24 
+    </footer>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

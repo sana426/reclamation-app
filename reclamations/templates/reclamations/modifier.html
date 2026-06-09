@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% block title %}Modifier réclamation{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .form-title {
+        color: #003f7f;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e6f0ff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .field-group label {
+        font-weight: 700;
+        color: #003f7f;
+        font-size: 0.85rem;
+    }
+    .field-group input, .field-group select, .field-group textarea {
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    .field-group input:focus, .field-group select:focus, .field-group textarea:focus {
+        border-color: #0060bf;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0,96,191,0.1);
+    }
+    .field-group input[readonly] {
+        background: #f8fafc;
+        color: #475569;
+    }
+    .full-width {
+        grid-column: span 2;
+    }
+    .form-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .btn-save {
+        background: #10b981;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-save:hover {
+        background: #059669;
+    }
+    .btn-cancel {
+        background: white;
+        color: #475569;
+        padding: 10px 25px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .btn-cancel:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+    .info-badge {
+        background: #e6f0ff;
+        color: #003f7f;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    @media (max-width: 640px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .full-width {
+            grid-column: span 1;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-title">
+        <span style="font-size: 1.5rem;">✏️</span>
+        <h2 style="color: #003f7f; margin: 0;">Modifier la réclamation</h2>
+        <span class="info-badge">{{ reclamation.id }}</span>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-grid">
+            <div class="field-group">
+                <label>Nom <span style="color: red;">*</span></label>
+                <input type="text" name="nom" value="{{ nom }}" required>
+            </div>
+            <div class="field-group">
+                <label>Prénom <span style="color: red;">*</span></label>
+                <input type="text" name="prenom" value="{{ reclamation.prenom|default:'' }}" required>
+            </div>
+            
+            <div class="field-group">
+                <label>CIN</label>
+                <input type="text" name="cin" value="{{ reclamation.cin|default:'' }}">
+            </div>
+            <div class="field-group">
+                <label>Téléphone</label>
+                <input type="tel" name="telephone" value="{{ reclamation.telephone|default:'' }}">
+            </div>
+            
+            <div class="field-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ reclamation.email|default:'' }}">
+            </div>
+            
+            <!-- CHAMP AGENCE AVEC LISTE DÉROULANTE -->
+            <div class="field-group">
+                <label>Agence <span style="color: red;">*</span></label>
+                <select name="agence" required>
+                    <option value="">-- Sélectionner une agence --</option>
+                    <option value="Azilal" {% if reclamation.agence == 'Azilal' %}selected{% endif %}>Azilal</option>
+                    <option value="Afourer" {% if reclamation.agence == 'Afourer' %}selected{% endif %}>Afourer</option>
+                    <option value="Bzou" {% if reclamation.agence == 'Bzou' %}selected{% endif %}>Bzou</option>
+                    <option value="Demnate" {% if reclamation.agence == 'Demnate' %}selected{% endif %}>Demnate</option>
+                    <option value="Ait Attab" {% if reclamation.agence == 'Ait Attab' %}selected{% endif %}>Ait Attab</option>
+                    <option value="Tanante" {% if reclamation.agence == 'Tanante' %}selected{% endif %}>Tanante</option>
+                    <option value="Ouaouizeghth" {% if reclamation.agence == 'Ouaouizeghth' %}selected{% endif %}>Ouaouizeghth</option>
+                </select>
+            </div>
+            
+            <div class="field-group">
+                <label>Type de problème <span style="color: red;">*</span></label>
+                <select name="type_probleme" required>
+                    {% for code, nom in types %}
+                    <option value="{{ code }}" {% if reclamation.type_probleme == code %}selected{% endif %}>{{ nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field-group">
+                <label>Niveau d'urgence <span style="color: red;">*</span></label>
+                <select name="urgence" required>
+                    {% for code, nom in urgences %}
+                    <option value="{{ code }}" {% if reclamation.urgence == code %}selected{% endif %}>{{ nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="field-group">
+                <label>Numéro de contrat</label>
+                <input type="text" name="numero_contrat" value="{{ reclamation.numero_contrat|default:'' }}">
+            </div>
+            <div class="field-group">
+                <label>Adresse</label>
+                <input type="text" name="adresse" value="{{ reclamation.adresse|default:'' }}">
+            </div>
+            
+            <div class="field-group full-width">
+                <label>Description <span style="color: red;">*</span></label>
+                <textarea name="description" rows="5" required>{{ reclamation.description }}</textarea>
+            </div>
+        </div>
+        
+        <div class="form-buttons">
+            <a href="{% url 'reclamations:liste_reclamations' %}" class="btn-cancel">Annuler</a>
+            <button type="submit" class="btn-save">💾 Enregistrer les modifications</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

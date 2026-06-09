@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard BI - Analyse Décisionnelle{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .kpi-card {
+        background: linear-gradient(135deg, #003f7f 0%, #0060bf 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-5px); }
+    .kpi-value { font-size: 2.2rem; font-weight: 900; }
+    .kpi-label { font-size: 0.8rem; opacity: 0.9; margin-top: 5px; }
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #003f7f;
+        margin-bottom: 15px;
+        border-left: 4px solid #0060bf;
+        padding-left: 10px;
+    }
+    .insight-box {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 25px;
+    }
+    .recommendation {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-top: 15px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 style="color: #003f7f; margin-bottom: 5px;">📊 Business Intelligence Dashboard</h2>
+<p style="color: #475569; margin-bottom: 25px;">Analyse décisionnelle des réclamations · KPIs · Tendances · Prévisions</p>
+
+<!-- Filtres -->
+<div style="background: white; border-radius: 16px; padding: 15px 20px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+        <div>
+            <label style="font-weight: 700; color: #003f7f;">📅 Période</label>
+            <select id="periodFilter" style="padding: 8px 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <option value="all">Toutes les dates</option>
+                <option value="month">30 derniers jours</option>
+                <option value="quarter">90 derniers jours</option>
+                <option value="year">Cette année</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-weight: 700; color: #003f7f;">📍 Agence</label>
+            <select id="agenceFilter" style="padding: 8px 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <option value="all">Toutes les agences</option>
+                <option value="Azilal">Azilal</option>
+                <option value="Afourer">Afourer</option>
+                <option value="Bzou">Bzou</option>
+                <option value="Demnate">Demnate</option>
+                <option value="Ait Attab">Ait Attab</option>
+                <option value="Tanante">Tanante</option>
+                <option value="Ouaouizeghth">Ouaouizeghth</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="rafraichirDashboard()" class="btn btn-primary" style="background: #0060bf; color: white; border: none; padding: 8px 20px; border-radius: 8px;">🔄 Actualiser</button>
+        </div>
+    </div>
+</div>
+
+<!-- KPIs Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div class="kpi-card">
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-label">📋 Total réclamations</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="kpiTaux">0%</div>
+        <div class="kpi-label">✅ Taux de résolution</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="kpiTemps">0j</div>
+        <div class="kpi-label">⏱️ Temps moyen traitement</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="kpiUrgent">0</div>
+        <div class="kpi-label">🔴 Urgentes non résolues</div>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin-bottom: 30px;">
+    <div class="chart-card">
+        <div class="chart-title">📊 Réclamations par Agence</div>
+        <canvas id="agenceChart" style="max-height: 280px;"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title">🥧 Types de problèmes</div>
+        <canvas id="typeChart" style="max-height: 280px;"></canvas>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin-bottom: 30px;">
+    <div class="chart-card">
+        <div class="chart-title">📈 Évolution temporelle (Tendance)</div>
+        <canvas id="trendChart" style="max-height: 280px;"></canvas>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title">🔄 Statut des réclamations</div>
+        <canvas id="statusChart" style="max-height: 280px;"></canvas>
+    </div>
+</div>
+
+<!-- Prévisions et Analyses -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+    <div class="chart-card">
+        <div class="chart-title">🔮 Prévision mois prochain</div>
+        <div style="text-align: center;">
+            <div style="font-size: 3rem; font-weight: 900; color: #003f7f;" id="prevision">0</div>
+            <p style="color: #475569;">réclamations prévues</p>
+            <div style="background: #e2e8f0; border-radius: 10px; height: 8px; margin-top: 10px;">
+                <div id="tendanceBar" style="background: #10b981; width: 0%; height: 8px; border-radius: 10px;"></div>
+            </div>
+            <p id="tendanceTexte" style="margin-top: 8px; font-size: 0.85rem;"></p>
+        </div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-title">🎯 Top agence à risque</div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 900; color: #ef4444;" id="topAgence">-</div>
+            <p id="topAgenceCount" style="color: #475569;"></p>
+            <div style="margin-top: 15px;">
+                <div class="chart-title" style="font-size: 0.9rem;">⚠️ Problème le plus fréquent</div>
+                <div style="font-size: 1.2rem; font-weight: 700;" id="topType">-</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights Décisionnels -->
+<div class="insight-box">
+    <div style="font-size: 1rem; font-weight: 800; margin-bottom: 10px;">🧠 Analyse Décisionnelle</div>
+    <div id="insights" style="font-size: 0.9rem; line-height: 1.6;">
+        Chargement des analyses...
+    </div>
+    <div id="recommendations" class="recommendation">
+        Chargement...
+    </div>
+</div>
+
+<script>
+let agenceChart, typeChart, trendChart, statusChart;
+
+function rafraichirDashboard() {
+    const period = document.getElementById('periodFilter').value;
+    const agence = document.getElementById('agenceFilter').value;
+    
+    fetch(`{% url 'reclamations:dashboard_stats' %}?period=${period}&agence=${agence}`)
+        .then(response => response.json())
+        .then(data => {
+            // Mettre à jour les KPIs
+            document.getElementById('kpiTotal').innerText = data.kpis.total;
+            document.getElementById('kpiTaux').innerText = data.kpis.taux_resolution + '%';
+            document.getElementById('kpiTemps').innerText = data.kpis.temps_moyen_traitement + 'j';
+            document.getElementById('kpiUrgent').innerText = data.kpis.urgentes_non_resolues;
+            
+            // Graphique par agence
+            if (agenceChart) agenceChart.destroy();
+            agenceChart = new Chart(document.getElementById('agenceChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data.agence_stats),
+                    datasets: [{ label: 'Nombre', data: Object.values(data.agence_stats), backgroundColor: '#0060bf', borderRadius: 8 }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+            
+            // Graphique types
+            if (typeChart) typeChart.destroy();
+            typeChart = new Chart(document.getElementById('typeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data.type_stats),
+                    datasets: [{ data: Object.values(data.type_stats), backgroundColor: ['#003f7f', '#0060bf', '#00b4d8', '#90e0ef', '#f59e0b', '#94a3b8'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+            
+            // Graphique tendance
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                    datasets: [{ label: 'Réclamations', data: data.trend_data, borderColor: '#003f7f', backgroundColor: 'rgba(0,63,127,0.1)', fill: true, tension: 0.3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+            
+            // Graphique statut
+            if (statusChart) statusChart.destroy();
+            statusChart = new Chart(document.getElementById('statusChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(data.statut_stats),
+                    datasets: [{ data: Object.values(data.statut_stats), backgroundColor: ['#f59e0b', '#0060bf', '#10b981'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+            
+            // Prévision
+            document.getElementById('prevision').innerText = data.prevision;
+            document.getElementById('tendanceBar').style.width = Math.min(Math.abs(data.tendance), 100) + '%';
+            document.getElementById('tendanceBar').style.background = data.tendance > 0 ? '#10b981' : '#ef4444';
+            document.getElementById('tendanceTexte').innerHTML = data.tendance > 0 ? 
+                `📈 Tendance haussière : +${data.tendance}%` : 
+                `📉 Tendance baissière : ${data.tendance}%`;
+            
+            // Top agence et type
+            document.getElementById('topAgence').innerText = data.top_agence.nom;
+            document.getElementById('topAgenceCount').innerText = `${data.top_agence.count} réclamation(s)`;
+            document.getElementById('topType').innerHTML = `<span style="color: #f59e0b;">⚠️</span> ${data.top_type.nom}`;
+            
+            // Insights
+            document.getElementById('insights').innerHTML = data.insights;
+            document.getElementById('recommendations').innerHTML = `💡 ${data.recommandations}`;
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            document.getElementById('insights').innerHTML = '❌ Erreur de chargement des données';
+        });
+}
+
+// Écouter les changements
+document.getElementById('periodFilter').addEventListener('change', rafraichirDashboard);
+document.getElementById('agenceFilter').addEventListener('change', rafraichirDashboard);
+
+// Charger au démarrage
+rafraichirDashboard();
+</script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Nouvelle réclamation{% endblock %}
+
+{% block content %}
+<h2 style="color: #003f7f; margin-bottom: 20px;">➕ Nouvelle réclamation</h2>
+
+<div style="background: white; border-radius: 16px; padding: 25px; border: 1px solid #e2e8f0;">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- Champs OBLIGATOIRES (avec étoile rouge) -->
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Nom <span style="color: red;">*</span></label>
+                <input type="text" name="nom" required style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Prénom <span style="color: red;">*</span></label>
+                <input type="text" name="prenom" required style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+            </div>
+            
+            <!-- Champs OPTIONNELS (sans étoile) -->
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">CIN</label>
+                <input type="text" name="cin" placeholder="Facultatif" style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Téléphone</label>
+                <input type="tel" name="telephone" placeholder="Facultatif" style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Email</label>
+                <input type="email" name="email" placeholder="Facultatif" style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+            </div>
+            
+            <!-- NOUVEAU : Numéro de contrat -->
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Numéro de contrat</label>
+                <input type="text" name="numero_contrat" placeholder="Facultatif" style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+            </div>
+            
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Agence <span style="color: red;">*</span></label>
+                <select name="agence" required style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                    <option value="">-- Choisir --</option>
+                    <option value="Azilal">Azilal</option>
+                    <option value="Afourer">Afourer</option>
+                    <option value="Bzou">Bzou</option>
+                    <option value="Demnate">Demnate</option>
+                    <option value="Ait Attab">Ait Attab</option>
+                    <option value="Tanante">Tanante</option>
+                    <option value="Ouaouizeghth">Ouaouizeghth</option>
+                </select>
+            </div>
+            <div class="form-group">
+               <label>Service <span style="color: red;">*</span></label>
+               <select name="service" required>
+            <option value="eau"> Eau</option>
+            <option value="electricite"> Électricité</option>
+            <option value="assainissement"> Assainissement</option>
+            </select>
+            </div>
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Type de problème <span style="color: red;">*</span></label>
+                <select name="type_probleme" required style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                    <option value="">-- Choisir --</option>
+                    <option value="fuite"> Fuite d'eau</option>
+                    <option value="pression"> Basse pression</option>
+                    <option value="coupure"> Coupure d'eau</option>
+                    <option value="qualite"> Qualité de l'eau</option>
+                    <option value="facturation">Facturation</option>
+                    <option value="autre"> Autre</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Niveau d'urgence <span style="color: red;">*</span></label>
+                <select name="urgence" required style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                    <option value="faible"> Faible</option>
+                    <option value="moyen"> Modéré</option>
+                    <option value="urgent"> Urgent</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: 700; color: #003f7f;">Adresse</label>
+                <input type="text" name="adresse" placeholder="Facultatif" style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;">
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <label style="font-weight: 700; color: #003f7f;">Description <span style="color: red;">*</span></label>
+            <textarea name="description" rows="5" required style="width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #e2e8f0; border-radius: 8px;"></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 25px;">
+            <button type="reset" class="btn" style="background: white; border: 2px solid #e2e8f0; padding: 10px 20px; border-radius: 8px;">🔄 Réinitialiser</button>
+            <button type="submit" class="btn btn-primary" style="background: #0060bf; color: white; padding: 10px 30px; border: none; border-radius: 8px;">📤 Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
