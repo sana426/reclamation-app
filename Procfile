@@ -1,0 +1,1 @@
+web: gunicorn srm_azilal.wsgi:application
